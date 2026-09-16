@@ -1,0 +1,4 @@
+I have made a cool G-code that shows max speed of your printer in a nice looking way
+
+For Led Effect, you need to use this Led Effect control https://github.com/julianschill/klipper-led_effect and paste the part of code from my document in a good .config file
+If you don't wanna to use Led Effect, just remove it from .config
