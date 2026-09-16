@@ -1,0 +1,223 @@
+[force_move]
+enable_force_move: True
+
+
+########################################################################################################################
+#################### Paste It in you caselight config if you are using this Led Effect control https://github.com/julianschill/klipper-led_effect    , if not, remove it below ##############################
+########################################################################################################################
+
+[led_effect police_caselight]
+leds:
+    neopixel:caselight
+layers:
+    breathing  1 6 top (0.0, 1.0, 0.0),(0.0, 0.0, 1.0)
+autostart:                             false
+frame_rate:                            24
+run_on_error:                          true
+
+[gcode_macro police_caselight]
+gcode:
+  STOP_LED_EFFECTS
+  SET_LED_EFFECT EFFECT=police_caselight FADETIME=1
+
+[gcode_macro Let_There_Be_Light]
+gcode:
+   status_off
+   SET_LED LED="sb_leds" RED=0.8 GREEN=0.8 BLUE=0.8 SYNC=0 TRANSMIT=1
+   SET_LED LED="caselight" RED=1 GREEN=1 BLUE=1 SYNC=0 TRANSMIT=1
+
+
+########################################################################################################################
+# Auto Homming only if needed 
+########################################################################################################################
+
+[gcode_macro _CG28]
+gcode:
+    {% if "xyz" not in printer.toolhead.homed_axes %}
+        G28
+    {% endif %} # Auto Homming only if needed 
+
+[gcode_macro _CQGL]
+gcode:
+    {% if printer.quad_gantry_level.applied == False %}
+        {% if "xyz" not in printer.toolhead.homed_axes %}
+            G28 ; home if not already homed
+        {% endif %}
+        QUAD_GANTRY_LEVEL
+        G28 Z
+    {% endif %} # Auto Homming only if needed 
+
+########################################################################################################################
+# nice macros for auto moving to specific positions (it calculates where it can move based on min and max axe lengths)
+########################################################################################################################
+
+# Park front center
+[gcode_macro PARKFRONT]
+gcode:
+    {% if "xyz" not in printer.toolhead.homed_axes %}
+        G28                           ; home if not already homed
+    {% endif %}
+    SAVE_GCODE_STATE NAME=PARKFRONT
+    G90                               ; absolute positioning
+    G0 X{printer.toolhead.axis_maximum.x/2} Y{printer.toolhead.axis_minimum.y+5} Z{printer.toolhead.axis_maximum.z/2} F6000        
+    RESTORE_GCODE_STATE NAME=PARKFRONT
+
+# Park front center, but low down.
+[gcode_macro PARKFRONTLOW]
+gcode:
+    {% if "xyz" not in printer.toolhead.homed_axes %}
+        G28                           ; home if not already homed
+    {% endif %}
+    SAVE_GCODE_STATE NAME=PARKFRONT
+    G90                              ; absolute positioning
+    G0 X{printer.toolhead.axis_maximum.x/2} Y{printer.toolhead.axis_minimum.y+5} Z20 F6000                                     
+    RESTORE_GCODE_STATE NAME=PARKFRONT
+
+# Park top rear left
+[gcode_macro PARKREAR]
+gcode:
+    {% if "xyz" not in printer.toolhead.homed_axes %}
+        G28                           ; home if not already homed
+    {% endif %}
+    SAVE_GCODE_STATE NAME=PARKREAR
+    G90                              ; absolute positioning
+    G0 X{printer.toolhead.axis_minimum.x+10} Y{printer.toolhead.axis_maximum.y-10} Z{printer.toolhead.axis_maximum.z-50} F6000     
+    RESTORE_GCODE_STATE NAME=PARKREAR
+
+# Park at center of build volume
+[gcode_macro PARKCENTER]
+gcode:
+    {% if "xyz" not in printer.toolhead.homed_axes %}
+        G28                           ; home if not already homed
+    {% endif %}
+    SAVE_GCODE_STATE NAME=PARKCENTER
+    G90                               ; absolute positioning
+    G0 X{printer.toolhead.axis_maximum.x/2} Y{printer.toolhead.axis_maximum.y/2} Z{printer.toolhead.axis_maximum.z/2} F6000    
+    RESTORE_GCODE_STATE NAME=PARKCENTER
+
+# Park 15mm above center of bed
+[gcode_macro PARKBED]
+gcode:
+    {% if "xyz" not in printer.toolhead.homed_axes %}
+        G28                           ; home if not already homed
+    {% endif %}
+    SAVE_GCODE_STATE NAME=PARKBED
+    G90                                ; absolute positioning
+    G0 X{printer.toolhead.axis_maximum.x/2} Y{printer.toolhead.axis_maximum.y/2} Z15 F6000                                     
+    RESTORE_GCODE_STATE NAME=PARKBED
+
+########################################################################################################################
+# DANCE_SHOW
+########################################################################################################################
+
+[gcode_macro DANCE_SHOW]
+gcode:
+    # Auto Homming only if needed  
+    _CG28
+    _CQGL
+
+    police_caselight
+    G4 P6000
+    Let_There_Be_Light
+    PARKCENTER
+    FORCE_MOVE STEPPER=stepper_z DISTANCE=5 VELOCITY=20
+    FORCE_MOVE STEPPER=stepper_z1 DISTANCE=5 VELOCITY=20
+    FORCE_MOVE STEPPER=stepper_z2 DISTANCE=5 VELOCITY=20
+    FORCE_MOVE STEPPER=stepper_z3 DISTANCE=5 VELOCITY=20
+    FORCE_MOVE STEPPER=stepper_z DISTANCE=-5 VELOCITY=20
+    FORCE_MOVE STEPPER=stepper_z1 DISTANCE=-5 VELOCITY=20
+    FORCE_MOVE STEPPER=stepper_z2 DISTANCE=-5 VELOCITY=20
+    FORCE_MOVE STEPPER=stepper_z3 DISTANCE=-5 VELOCITY=20
+    
+    G0 X60 Y290 Z20 F48000 #START Rear Left
+    G0 X290 Y60 Z40 #Front Right
+    G0 X60 Z20 #Frotn Left
+    G0 X290 Y290 Z40 #Rear Right
+    
+    G0 X60 Y290 Z20
+    G0 X290 Y60 Z40
+    G0 X60 Z20
+    G0 X290 Y290 Z40
+
+    G0 X145 Y290 Z45
+    G0 X60 Y145 Z50
+    G0 X145 Y60 Z55
+    G0 X290 Y145 Z60
+
+    G0 X145 Y290 Z65
+    G0 X60 Y145 Z70
+    G0 X145 Y60 Z75
+    G0 X290 Y145 Z80
+
+    G0 X145 Y290 Z85
+    G0 X60 Y145 Z90
+    G0 X145 Y60 Z95
+    G0 X290 Y145 Z100
+
+    G0 X145 Y290 Z105
+    G0 X60 Y145 Z110
+    G0 X145 Y60 Z115
+    G0 X290 Y145 Z120
+
+    G0 X145 Y290 Z115
+    G0 X60 Y145 Z110
+    G0 X145 Y60 Z105
+    G0 X290 Y145 Z100
+
+    G0 X145 Y290 Z95
+    G0 X60 Y145 Z90
+    G0 X145 Y60 Z85
+    G0 X290 Y145 Z80
+
+    G0 X145 Y290 Z75
+    G0 X60 Y145 Z70
+    G0 X145 Y60 Z65
+    G0 X290 Y145 Z60
+
+    G0 X145 Y290 Z55
+    G0 X60 Y145 Z50
+    G0 X145 Y60 Z45
+    G0 X290 Y145 Z40
+    
+    G0 X175 Y175 # Middle
+
+
+    G17
+    G0 X50 Y175 F48000
+    G2 Z200 I125
+    G2 Z20 I125
+    G2 Z200 I125
+    G0 X175 Y175 Z230
+    G0 Z125 X330 Y330
+    G0 Z20 X175 Y175
+    G0 Z125 X20 Y20
+    G0 Z230 X175 Y175
+    G0 Z125 X20 Y330
+    G0 Z20 X175 Y175
+    G0 Z125 X330 Y20
+    G0 Z230 X175 Y175
+
+    # Arc Moves
+
+    G0 X175 Y175 Z130 F48000
+    G17
+    G0 X50 Y175
+    G2 I125
+    G2 I125
+    G2 I125
+
+    G0 X175 Y175 Z130
+    G18 
+    G0 X300 Y175
+    G2 X300 Z130 I-125 K0 F9000
+    G2 X300 Z130 I-125 K0
+
+    G0 X175 Y175 Z130 F48000
+    G19
+    G0 X175 Y300
+    G2 Y300 Z130 J-125 K0 F9000
+    G2 Y300 Z130 J-125 K0
+
+
+    PARKCENTER
+
